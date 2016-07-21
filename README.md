@@ -1,50 +1,80 @@
-# `two_sum?`
-Given an array of unique integers and a target sum, determine whether any two integers in the array sum to that amount.
+# Max Windowed Range
 
+Given an array, and a window size `w`, find the maximum range
+(`max - min`) within a set of `w` elements.
 
-```ruby
-def two_sum?(arr, target_sum)
-    # your code here...
-end
+Let's say we are given the array [1, 2, 3, 5] and a window size of 3.
+Here, there are only two cases to consider:
 
-arr = [0, 1, 5, 7]
-two_sum?(arr, 6) # => should be true
-two_sum?(arr, 10) # => should be false
+```
+1. [1 2 3] 5
+2. 1 [2 3 5]
 ```
 
-**Before you start coding anything, talk it over with your partner. Sketch out on paper how you'd approach this problem. What would be the running time of your proposed solution? Take as long as you need, but don't write any code yet.**
+In the first case, the difference between the max and min elements of
+the window is two (`3 - 1 == 2`). In the second case, that difference is
+three (`5 - 2 == 3`). We want to write a function that will return the
+larger of these two differences.
 
-### Brute force
-If we weren't worried about time complexity, what would be the most straightforward way to solve this problem? To start with, we could check every possible pair. If we sum each element with every other, we're sure to either find the pair that sums to the target, or determine that no such pair exists.
+## Naive Solution
 
-This is the **brute force** solution. It's essentially hitting the problem with a sledge hammer. There are faster and more elegant ways to solve the problem, but we know for sure that this will get the job done.
+One approach to solving this problem would be:
 
-Let's start by implementing the brute force solution. Write a method called `bad_two_sum?`, which checks every possible pair.
+1. Initialize a local variable `current_max_range` to `nil`.
+2. Iterate over the array and consider each window of size `w`. For each
+   window:
+  1. Find the `max` value in the window.
+  2. Find the `min` value in the window.
+  3. Calculate `max - min` and compare it to `current_max_range`. Reset
+  the value of `current_max_range` if necessary.
+3. Return `current_max_range`.
 
-Make sure that you don't pair an element with itself. However, you don't need to bother checking for summing the same pair twice; that won't affect your result.
+Implement this approach in a method, `max_windowed_range(array,
+window_size)`. Make sure your code passes the following test cases:
 
-(Note: you can cut the running-time significantly by returning early, and by not checking pairs more than once. Howevever, these micro-optimizations will not improve the time complexity of the solution. Do you see why?)
+```ruby
+windowed_max_range([1, 0, 2, 5, 4, 8], 2) == 4 # 4, 8
+windowed_max_range([1, 0, 2, 5, 4, 8], 3) == 5 # 0, 2, 5
+windowed_max_range([1, 0, 2, 5, 4, 8], 4) == 6 # 2, 5, 4, 8
+windowed_max_range([1, 3, 2, 5, 4, 8], 5) == 6 # 3, 2, 5, 4, 8
+```
 
-Once you're done, write a comment with your solution's time complexity.
+Think about the time complexity of your method. How many iterations are
+required at each step? What is its overall time complexity in Big-O
+notation?
 
-### Sorting
-As a person of elevated algorithmic sensibilities, the brute-force approach is beneath you. Leave that nonsense to the riffraff. Instead, you'll apply a refined and time-honored technique: **sorting**.
+## Optimized Solution
 
-Sort your data, then try to solve the problem.
+It turns out that it is quite costly to calculate the `min` and `max`
+elements of each window. If we use the `min` and `max` methods built
+into Ruby, this costs us `2 * window_size` iterations for each window.
+What if it were possible to calculate `min` and `max` instantaneously
+(in constant time)? We can write a data structure to help with this.
 
-1. What does sorting do to the lower bound of your time complexity?
-2. How might sorting that make the problem easier?
+### Queues
 
-Write a second solution, called `okay_two_sum?`, which uses sorting. Make sure it works correctly.
+In the naive solution, we consider each window as a slice of the input
+array. On the first iteration, we slice the array from index `0` to
+index `w`. On the second iteration, we slice from `1` to `w + 1`, and so
+forth. However, slicing an array is rather costly. Since the window only
+moves one index at a time, it would be nicer to represent it as a
+**queue**. Every time we move the window, we could enqueue the next
+element and dequeue the last element. However, that still leaves us with
+the problem of expensive `max` and `min` operations. To solve this,
+we'll write a hybrid data structure called a MinMaxStackQueue.
 
-*Hint: (There are a couple ways to solve this problem once it's sorted. One way involves using a very cheap algorithm that can only be used on sorted data sets. What are some such algorithms you know?)*
+Let's take a detour to [write this data structure][stacks-and-queues].
 
-### Hash Map
-Finally, it's time to bust out the big guns: a hash map. Remember, a hash map has *O(1)* `#set` and *O(1)* `#get`, so you can build a hash out of each of the `n` elements in your array in *O(n)* time. That hash map prevents you from having to repeatedly find values in the array; now you can just look them up instantly.
+[stacks-and-queues]: stacks-and-queues.md
 
-See if you can solve the `pair_sum?` problem in linear time now, using your hash map.
+**Do not move on until you have completed the Stacks and Queues
+exercises!**
 
-Once you're finished, make sure you understand the time complexity of your solutions and then call over your TA and show them what you've got. Defend to them why each of your solutions has the time complexity you claim it does.
+### Writing the Optimized Solution
 
-##### Bonus
-See if you can extend your solution of `two_sum?` to solve `four_sum?`. Call over your TA once you think your implementation is optimal!
+Armed with a working MinMaxStackQueue, this problem should be much
+easier. You'll want to follow the same basic approach as above, but use
+your new data structure instead of array slices. As before, return the
+`current_max_range` at the end of the method. Make sure all the test
+cases pass, and that you both understand the time complexity of this
+solution. Then talk to your TA about it and have them review your code!
